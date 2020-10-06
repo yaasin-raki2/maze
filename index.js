@@ -1,8 +1,12 @@
 const { Engine, World, Bodies, Runner, Render } = Matter;
 
-const cells = 3
 const width = 600;
 const height = 600;
+
+const cells = 9;
+
+const unitLength = width / cells;
+
 
 const engine = Engine.create();
 const { world } = engine;
@@ -10,7 +14,7 @@ const render = Render.create({
     element: document.body,
     engine: engine,
     options: {
-        wireframes: true,
+        wireframes: false,
         width,
         height
     }
@@ -21,10 +25,10 @@ Runner.run(Runner.create(), engine);
 
 // Walls 
 const walls = [
-    Bodies.rectangle(width / 2, 0, width, 40, { isStatic: true }),
-    Bodies.rectangle(width / 2, height, width, 40, { isStatic: true }),
-    Bodies.rectangle(0, height / 2, 40, height, { isStatic: true }),
-    Bodies.rectangle(width, height / 2, 40, height, { isStatic: true })
+    Bodies.rectangle(width / 2, 0, width, 2, { isStatic: true }),
+    Bodies.rectangle(width / 2, height, width, 2, { isStatic: true }),
+    Bodies.rectangle(0, height / 2, 2, height, { isStatic: true }),
+    Bodies.rectangle(width, height / 2, 2, height, { isStatic: true })
 ]
 
 World.add(world, walls);
@@ -101,13 +105,55 @@ const stepThroughCell = (row, column) => {
             horizentals[row][column] = true;
         }
 
-        stepThroughCell(nextRow, nextRow);
+        // Visit that next cell
+        stepThroughCell(nextRow, nextColumn);
     }
-
-    // Visit that next cell
-
 }
 
 stepThroughCell(startRow, startColumn);
 
-console.log(verticals, horizentals);
+console.log(horizentals)
+console.log(verticals)
+
+horizentals.forEach( (row, rowIndex) => {
+    row.forEach( (open, columnIndex) => {
+
+        if (open) { return }
+        
+        const wall = Bodies.rectangle(
+            columnIndex * unitLength + unitLength / 2,
+            rowIndex * unitLength + unitLength,
+            unitLength,
+            5,
+            { isStatic: true }
+        );
+
+        World.add(world, wall)
+    })
+})
+
+verticals.forEach( (row, rowIndex) => {
+    row.forEach( (open, columnIndex) => {
+        if (open) { return }
+
+        const wall = Bodies.rectangle(
+            columnIndex * unitLength + unitLength,
+            rowIndex * unitLength + unitLength / 2,
+            5,
+            unitLength,
+            { isStatic: true }
+        );
+
+        World.add(world, wall);
+    })
+})
+
+const goal = Bodies.rectangle(
+    width - unitLength / 2,
+    height - unitLength / 2,
+    unitLength * 0.7,
+    unitLength * 0.7,
+    { render: { fillStyle: 'yellow' }, isStatic: true }  
+);
+
+World.add(world, goal);
