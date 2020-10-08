@@ -1,4 +1,4 @@
-const { Engine, World, Bodies, Runner, Render } = Matter;
+const { Engine, World, Bodies, Runner, Render, Body, Events } = Matter;
 
 const width = 600;
 const height = 600;
@@ -9,6 +9,9 @@ const unitLength = width / cells;
 
 
 const engine = Engine.create();
+
+engine.world.gravity.y = 0;
+
 const { world } = engine;
 const render = Render.create({
     element: document.body,
@@ -112,9 +115,6 @@ const stepThroughCell = (row, column) => {
 
 stepThroughCell(startRow, startColumn);
 
-console.log(horizentals)
-console.log(verticals)
-
 horizentals.forEach( (row, rowIndex) => {
     row.forEach( (open, columnIndex) => {
 
@@ -153,7 +153,47 @@ const goal = Bodies.rectangle(
     height - unitLength / 2,
     unitLength * 0.7,
     unitLength * 0.7,
-    { render: { fillStyle: 'yellow' }, isStatic: true }  
+    { label: "goal", render: { fillStyle: 'yellow' }, isStatic: true }  
 );
 
 World.add(world, goal);
+
+const ball = Bodies.circle( 
+    unitLength / 2,
+    unitLength / 2,
+    unitLength / 4,
+    { label: "ball", render: { fillStyle: 'purple' } }
+);
+
+World.add(world, ball);
+
+// add movements to the ball<
+document.addEventListener('keydown', event => {
+    const { x, y } = ball.velocity
+
+    if (event.keyCode === 87) {
+        Body.setVelocity(ball, { x, y: y - 5 });
+    }
+
+    if (event.keyCode === 68) {
+        Body.setVelocity(ball, { x: x + 5, y });
+    }
+
+    if (event.keyCode === 83) {
+        Body.setVelocity(ball, { x, y: y + 5 });
+    }
+
+    if (event.keyCode === 65) {
+        Body.setVelocity(ball, { x: x -5, y })
+    }
+
+})
+
+Events.on(engine, "collisionStart", event => {
+    event.pairs.forEach( collision => {
+        const labels = [ "ball", "goal"];
+        if ( labels.includes(collision.bodyA.label) && labels.includes(collision.bodyB.label) ) {
+            console.log('You Won');
+        }
+    })
+})
